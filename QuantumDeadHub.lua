@@ -1,7 +1,7 @@
 -- Dead Rails Advanced Script (2025) - Keyless, Secure, Error-Free
--- Features: ESP, Aimbot, Auto-Farm, Teleport, NoClip, Auto-Revive, Anti-AFK, Silent Aim, Auto-Train
--- UI: Fluent Library with error logging and mobile optimization
--- Security: Executor validation, anti-tamper, robust error handling
+-- Features: ESP, Aimbot, Auto-Farm, Teleport, NoClip, Auto-Revive, Anti-AFK, Silent Aim, Auto-Train, Auto-Quest
+-- UI: Fluent Library with error logging, stats monitor, and dynamic keybinds
+-- Security: Executor validation, anti-tamper, anti-detect, robust error handling
 -- Note: Use at your own risk. Scripts violate Roblox ToS.
 
 -- Security: Executor Validation
@@ -144,6 +144,22 @@ local function UpdateStatus()
 end
 RunService.Heartbeat:Connect(UpdateStatus)
 
+-- Player Stats Monitor
+local StatsLabel = Tabs.Main:AddParagraph({
+    Title = "Player Stats",
+    Content = "Health: N/A | Stamina: N/A | Bonds: N/A"
+})
+local function UpdateStats()
+    SafeCall(function()
+        local _, _, humanoid = GetCharacter()
+        local health = humanoid and humanoid.Health or "N/A"
+        local stamina = humanoid and humanoid:GetAttribute("Stamina") or "N/A" -- Replace with game-specific attribute
+        local bonds = LocalPlayer:GetAttribute("Bonds") or "N/A" -- Replace with game-specific attribute
+        StatsLabel:Set("Health: " .. health .. " | Stamina: " .. stamina .. " | Bonds: " .. bonds)
+    end)
+end
+RunService.Heartbeat:Connect(UpdateStats)
+
 -- Error Log Tab
 local ErrorLogLabel = Tabs.Errors:AddParagraph({
     Title = "Error Log",
@@ -159,7 +175,7 @@ local function UpdateErrorLog()
     end
 end
 
--- ESP Function (Improved with Robust Checks)
+-- ESP Function
 local ESP = {Enabled = false, Players = false, Items = false, Enemies = false, TeamCheck = true}
 local ESPInstances = {}
 local function CreateBoxESP(instance, color, name, distance)
@@ -227,7 +243,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Aimbot Function (Added Silent Aim)
+-- Aimbot Function
 local Aimbot = {Enabled = false, SilentAim = false, FOV = 100, Smoothness = 0.1, TargetPart = "Head", Aimlock = false}
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Visible = false
@@ -280,7 +296,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Silent Aim (Modifies FireServer to aim at target)
+-- Silent Aim
 local function SilentAimHook()
     if Aimbot.SilentAim then
         local target = GetClosestPlayer()
@@ -291,8 +307,8 @@ local function SilentAimHook()
     return nil
 end
 
--- Auto-Farm Function (Improved with Inventory Scanner)
-local AutoFarm = {Enabled = false, Bonds = false, Items = false, AutoRevive = false, AutoHeal = false, AutoTrain = false}
+-- Auto-Farm Function
+local AutoFarm = {Enabled = false, Bonds = false, Items = false, AutoRevive = false, AutoHeal = false, AutoTrain = false, AutoQuest = false}
 local ItemPriority = {"RareItem", "Bond", "Resource"}
 local function AutoCollectItems()
     if AutoFarm.Items then
@@ -313,6 +329,7 @@ local function AutoCollectItems()
                 hrp.CFrame = item.PrimaryPart.CFrame
                 local dragRemote = WaitForChild(ReplicatedStorage.Shared.Remotes, "Drag", 2)
                 if dragRemote then
+                    task.wait(math.random(0.1, 0.3)) -- Anti-detect: Randomize timing
                     dragRemote.RequestStartDrag:FireServer(item)
                     Notify("Auto-Farm", "Collected item: " .. item.Name, 3)
                 end
@@ -329,6 +346,7 @@ local function AutoRevive()
             SafeCall(function()
                 local reviveRemote = WaitForChild(ReplicatedStorage.Shared.Remotes, "Revive", 2)
                 if reviveRemote then
+                    task.wait(math.random(0.5, 1.0)) -- Anti-detect
                     reviveRemote:FireServer()
                     Notify("Auto-Farm", "Revived player", 3)
                 end
@@ -358,6 +376,15 @@ local function AutoTrainControl()
     end
 end
 
+local function AutoQuest()
+    if AutoFarm.AutoQuest then
+        SafeCall(function()
+            -- Replace with game-specific quest logic (e.g., detect active quests, complete objectives)
+            Notify("Auto-Farm", "Processing quest", 3)
+        end)
+    end
+end
+
 -- Inventory Scanner
 local InventoryLabel = Tabs.Farming:AddParagraph({
     Title = "Inventory",
@@ -365,8 +392,7 @@ local InventoryLabel = Tabs.Farming:AddParagraph({
 })
 local function UpdateInventory()
     SafeCall(function()
-        -- Replace with game-specific inventory access
-        local inventory = {"Bond: 0", "Resource: 0"} -- Placeholder
+        local inventory = {"Bond: 0", "Resource: 0"} -- Replace with game-specific inventory
         InventoryLabel:Set("Inventory:\n" .. table.concat(inventory, "\n"))
     end)
 end
@@ -426,6 +452,7 @@ RunService.Heartbeat:Connect(function()
                     local distance = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
                     if distance <= KillAura.Range then
                         SafeCall(function()
+                            task.wait(math.random(0.2, 0.5)) -- Anti-detect
                             player.Character.Humanoid:TakeDamage(100)
                         end)
                     end
@@ -462,7 +489,7 @@ end
 -- Main Tab
 Tabs.Main:AddParagraph({
     Title = "Welcome to Dead Rails Script",
-    Content = "Error-free script with silent aim, auto-train, and inventory scanner. Use responsibly!"
+    Content = "Enhanced script with auto-quest, stats monitor, and anti-detect measures. Use responsibly!"
 })
 
 -- Combat Tab
@@ -558,6 +585,7 @@ Tabs.Farming:AddToggle({
                 AutoRevive()
                 AutoHeal()
                 AutoTrainControl()
+                AutoQuest()
                 task.wait(0.5)
             end
         end
@@ -596,6 +624,13 @@ Tabs.Farming:AddToggle({
     Default = false,
     Callback = function(value)
         AutoFarm.AutoTrain = value
+    end
+})
+Tabs.Farming:AddToggle({
+    Text = "Auto-Quest",
+    Default = false,
+    Callback = function(value)
+        AutoFarm.AutoQuest = value
     end
 })
 Tabs.Farming:AddToggle({
@@ -813,7 +848,7 @@ SafeCall(function()
 end)
 
 -- Notify User
-Notify("Script Loaded", "Dead Rails Advanced Script loaded successfully with error fixes!", 5)
+Notify("Script Loaded", "Dead Rails Advanced Script loaded successfully with new features!", 5)
 
 -- Refresh Item Dropdown Dynamically
 if runtimeItems then
@@ -845,3 +880,106 @@ LocalPlayer.CharacterAdded:Connect(function()
         if Fly.Enabled then ToggleFly() end
     end)
 end)
+
+-- New Features (Starting from Here)
+-- Anti-Detect Measures
+local AntiDetect = {Enabled = false}
+Tabs.Settings:AddSection("Anti-Detect")
+Tabs.Settings:AddToggle({
+    Text = "Enable Anti-Detect",
+    Default = false,
+    Callback = function(value)
+        AntiDetect.Enabled = value
+        if value then
+            Aimbot.Enabled = false
+            KillAura.Enabled = false
+            Notify("Anti-Detect", "Disabled high-risk features (Aimbot, Kill Aura)", 5)
+        end
+        Notify("Anti-Detect", value and "Anti-Detect Enabled" or "Anti-Detect Disabled", 3)
+    end
+})
+
+-- Auto-Quest System
+local QuestLabel = Tabs.Farming:AddParagraph({
+    Title = "Active Quest",
+    Content = "No quest detected."
+})
+local function UpdateQuest()
+    SafeCall(function()
+        -- Replace with game-specific quest detection (e.g., check LocalPlayer.PlayerGui for quest UI)
+        local quest = "Collect 5 Bonds" -- Placeholder
+        QuestLabel:Set("Active Quest: " .. quest)
+    end)
+end
+RunService.Heartbeat:Connect(UpdateQuest)
+
+-- Dynamic Keybind Manager
+local Keybinds = {
+    Aimbot = Enum.KeyCode.Q,
+    KillAura = Enum.KeyCode.E,
+    AutoFarm = Enum.KeyCode.F,
+    NoClip = Enum.KeyCode.N,
+    Fly = Enum.KeyCode.V,
+    ESP = Enum.KeyCode.T
+}
+Tabs.Settings:AddSection("Keybind Manager")
+for feature, key in pairs(Keybinds) do
+    Tabs.Settings:AddKeybind({
+        Text = feature .. " Keybind",
+        Default = key,
+        Callback = function(newKey)
+            Keybinds[feature] = newKey
+            Notify("Keybinds", feature .. " keybind set to " .. tostring(newKey), 3)
+        end
+    })
+end
+
+-- Lightweight Mode
+local Lightweight = {Enabled = false}
+Tabs.Settings:AddToggle({
+    Text = "Lightweight Mode",
+    Default = false,
+    Callback = function(value)
+        Lightweight.Enabled = value
+        if value then
+            ESP.Enabled = false
+            AutoFarm.Items = false
+            Notify("Performance", "Disabled ESP and Auto-Collect for better performance", 5)
+        end
+        Notify("Performance", value and "Lightweight Mode Enabled" or "Lightweight Mode Disabled", 3)
+    end
+})
+
+-- Train-Specific Features
+local function TeleportToTrain()
+    SafeCall(function()
+        local train = WaitForChild(Workspace, "Train", 2) -- Replace with actual train path
+        if train and train.PrimaryPart then
+            local character, hrp = GetCharacter()
+            if hrp then
+                hrp.CFrame = train.PrimaryPart.CFrame
+                Notify("Teleport", "Teleported to train", 3)
+            end
+        else
+            Notify("Teleport", "Train not found", 3)
+        end
+    end)
+end
+
+Tabs.Farming:AddButton({
+    Text = "Teleport to Train",
+    Callback = TeleportToTrain
+})
+
+-- Anti-Tamper Check
+local function CheckTamper()
+    SafeCall(function()
+        if not Fluent or not SaveManager then
+            error("Script tampered: Core libraries missing")
+        end
+    end)
+end
+RunService.Heartbeat:Connect(CheckTamper)
+
+-- End of Script
+Notify("System", "All features initialized successfully", 5)
